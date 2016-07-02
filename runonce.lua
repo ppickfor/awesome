@@ -1,3 +1,4 @@
+-- https://awesome.naquadah.org/wiki/Autostart
 require("lfs") 
 -- {{{ Run programm once
 local awful = require("awful")

@@ -1,3 +1,4 @@
+-- https://awesome.naquadah.org/wiki/Active_RAM
    local wibox = require("wibox")
    local awful = require("awful")
    

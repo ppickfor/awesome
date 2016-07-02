@@ -1,3 +1,4 @@
+-- https://awesome.naquadah.org/wiki/Closured_Battery_Widget
 local wibox = require("wibox")
 local awful = require("awful")
    

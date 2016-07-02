@@ -1,3 +1,4 @@
+-- https://awesome.naquadah.org/wiki/Calendar_widget
 local awful = require("awful")
 local naughty = require("naughty")
     local calendar = nil
