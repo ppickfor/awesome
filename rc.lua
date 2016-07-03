@@ -11,7 +11,19 @@ local beautiful = require("beautiful")
 local naughty = require("naughty")
 local menubar = require("menubar")
 local net_widgets = require("net_widgets")
-net_wireless = net_widgets.wireless({interface="wlp7s0", font="monospace"})
+local lfs = require("lfs")
+-- find the first wlan device
+for file in lfs.dir[[/sys/class/net/]] do
+        if file ~= "." and file ~= ".." then
+                udevf = io.open("/sys/class/net/" .. file .. "/uevent")
+                if udevf then
+                        types = udevf:read("*all")
+                        if types:match("DEVTYPE=wlan") then
+				net_wireless = net_widgets.wireless({interface=file, font="monospace"})
+                        end
+                end
+        end
+end
 function dbg(vars)
     local text = ""
     for i=1, #vars do text = text .. vars[i] .. " | " end
