@@ -12,6 +12,12 @@ local naughty = require("naughty")
 local menubar = require("menubar")
 local net_widgets = require("net_widgets")
 local lfs = require("lfs")
+function dbg(vars)
+    local text = ""
+    for i=1, #vars do text = text .. vars[i] .. " | " end
+    naughty.notify({ text = text, timeout = 0 })
+end
+require("mousemove")
 -- find the first wlan device
 for file in lfs.dir[[/sys/class/net/]] do
         if file ~= "." and file ~= ".." then
@@ -23,11 +29,6 @@ for file in lfs.dir[[/sys/class/net/]] do
                         end
                 end
         end
-end
-function dbg(vars)
-    local text = ""
-    for i=1, #vars do text = text .. vars[i] .. " | " end
-    naughty.notify({ text = text, timeout = 0 })
 end
 -- Battery
 require("battery")
@@ -246,7 +247,13 @@ root.buttons(awful.util.table.join(
 -- }}}
 
 -- {{{ Key bindings
+local toggletackpad = function ()
+    os.execute("/usr/bin/synclient TouchpadOff=$(synclient -l | grep -c 'TouchpadOff.*=.*0')" )
+    moveMouse(safeCoords.x, safeCoords.y)
+end
+
 globalkeys = awful.util.table.join(
+    awful.key({}, "#248", toggletackpad),
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
@@ -475,4 +482,5 @@ end)
 
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+
 -- }}}
