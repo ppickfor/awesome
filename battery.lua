@@ -1,6 +1,7 @@
 -- https://awesome.naquadah.org/wiki/Closured_Battery_Widget
 local wibox = require("wibox")
 local awful = require("awful")
+local lfs = require("lfs")
    
 local io = io
 local math = math
@@ -28,9 +29,18 @@ function hrstotime(hrs)
 end
 
 function get_bat_state (adapter)
-    local fcha = io.open("/sys/class/power_supply/"..adapter.."/charge_now")
-    local fcap = io.open("/sys/class/power_supply/"..adapter.."/charge_full")
-    local fcur = io.open("/sys/class/power_supply/"..adapter.."/current_now")
+    local fcha = io.open("/sys/class/power_supply/"..adapter.."/energy_now")
+    if not fcha then
+      fcha = assert(io.open("/sys/class/power_supply/"..adapter.."/charge_now"))
+    end
+    local fcap = io.open("/sys/class/power_supply/"..adapter.."/energy_full")
+    if not fcap then
+      fcap = assert(io.open("/sys/class/power_supply/"..adapter.."/charge_full"))
+    end
+    local fcur = io.open("/sys/class/power_supply/"..adapter.."/power_now")
+    if not fcur then
+      fcur = assert(io.open("/sys/class/power_supply/"..adapter.."/current_now"))
+    end
     local fsta = io.open("/sys/class/power_supply/"..adapter.."/status")
     local cha = fcha:read()
     local cap = fcap:read()
@@ -41,17 +51,25 @@ function get_bat_state (adapter)
     fcur:close()
     fsta:close()
     local battery = math.floor(cha * 100 / cap)
-    if cur ~= cur or cha ~= cha or cap ~= cap or math.floor(cur) == 0 then
+    if cur ~= cur or cha ~= cha or cap ~= cap then
         sta = "Unknown"
     else
     local battery = math.floor(cha * 100 / cap)
     end
     -- dbg( { cur, cha, cap, sta } )
     if sta:match("Charging") then
-        time = hrstotime((cap-cha)/cur)
+        if math.floor(cur) ~= 0 then
+          time = hrstotime((cap-cha)/cur)
+        else
+          time = ""
+        end
         dir = 1
     elseif sta:match("Discharging") then
-        time = hrstotime(cha/cur)
+        if math.floor(cur) ~= 0 then
+          time = hrstotime(cha/cur)
+        else
+          time = ""
+        end
         dir = -1
     else
         dir = 0
@@ -110,9 +128,20 @@ end
 
 batterywidget = wibox.widget.textbox()
 batterywidget:set_align("right")
+-- find the first battery in power_supply
+for file in lfs.dir[[/sys/class/power_supply/]] do
+	if file ~= "." and file ~= ".." then
+		typef = io.open("/sys/class/power_supply/" .. file .. "/type")
+		if typef then
+			types = typef:read()
+			if types:match("Battery") then
+				bat = batclosure(file)
+			end
+		end
+	end
+end
    
 function update_battery(widget)
-  local bat = batclosure("BAT1")
   widget:set_markup(bat())
 end
 
