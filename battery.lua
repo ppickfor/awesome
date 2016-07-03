@@ -126,8 +126,10 @@ function batclosure (adapter)
     end
 end
 
-batterywidget = wibox.widget.textbox()
-batterywidget:set_align("right")
+function update_battery(widget)
+  widget:set_markup(bat())
+end
+
 -- find the first battery in power_supply
 for file in lfs.dir[[/sys/class/power_supply/]] do
 	if file ~= "." and file ~= ".." then
@@ -141,12 +143,12 @@ for file in lfs.dir[[/sys/class/power_supply/]] do
 	end
 end
    
-function update_battery(widget)
-  widget:set_markup(bat())
-end
-
+if bat then
+batterywidget = wibox.widget.textbox()
+batterywidget:set_align("right")
 update_battery(batterywidget)
 
 battimer = timer({ timeout = 10 })
 battimer:connect_signal("timeout", function () update_battery(batterywidget) end)
 battimer:start()
+end
