@@ -28,7 +28,7 @@ function hrstotime(hrs)
 	return time
 end
 
-function get_bat_state (adapter)
+function get_bat_state (adapter, mains)
     local fcha = io.open("/sys/class/power_supply/"..adapter.."/energy_now")
     if not fcha then
       fcha = assert(io.open("/sys/class/power_supply/"..adapter.."/charge_now"))
@@ -42,19 +42,19 @@ function get_bat_state (adapter)
       fcur = assert(io.open("/sys/class/power_supply/"..adapter.."/current_now"))
     end
     local fsta = io.open("/sys/class/power_supply/"..adapter.."/status")
+    local fonline = assert(io.open("/sys/class/power_supply/" .. mains .. "/online"))
     local cha = fcha:read()
     local cap = fcap:read()
     local cur = fcur:read()
     local sta = fsta:read()
+    local onl = fonline:read()
     fcha:close()
     fcap:close()
     fcur:close()
     fsta:close()
     local battery = math.floor(cha * 100 / cap)
-    if cur ~= cur or cha ~= cha or cap ~= cap then
+    if cur ~= cur or cha ~= cha or cap ~= cap or sta ~= sta then
         sta = "Unknown"
-    else
-    local battery = math.floor(cha * 100 / cap)
     end
     -- dbg( { cur, cha, cap, sta } )
     if sta:match("Charging") then
@@ -76,7 +76,12 @@ function get_bat_state (adapter)
         battery = ""
         time = ""
     end
-    return battery, dir, time
+    if onl:match("1") then
+      online = "⚡"
+    else
+      online = ""
+    end
+    return online, battery, dir, time
 end
 
 function getnextlim (num)
@@ -95,14 +100,14 @@ function getnextlim (num)
 end
 
 
-function batclosure (adapter)
+function batclosure (adapter, mains)
     local nextlim = limits[1][1]
     return function ()
-        local prefix = "⚡"
-        local battery, dir, time = get_bat_state(adapter)
+        local online, battery, dir, time = get_bat_state(adapter, mains)
+        local prefix = online
         if dir == -1 then
             dirsign = "↓"
-            prefix = "Bat: "
+            prefix = prefix .. "Bat: "
             prefix = prefix .. time
             if battery <= nextlim then
                 naughty.notify({title = "⚡ Beware! ⚡",
@@ -131,24 +136,30 @@ function update_battery(widget)
 end
 
 -- find the first battery in power_supply
+local battery, mains
 for file in lfs.dir[[/sys/class/power_supply/]] do
 	if file ~= "." and file ~= ".." then
 		typef = io.open("/sys/class/power_supply/" .. file .. "/type")
 		if typef then
 			types = typef:read()
 			if types:match("Battery") then
-				bat = batclosure(file)
+				battery = file
+			end
+			if types:match("Mains") then
+				mains = file
 			end
 		end
 	end
 end
-   
-if bat then
-batterywidget = wibox.widget.textbox()
-batterywidget:set_align("right")
-update_battery(batterywidget)
 
-battimer = timer({ timeout = 10 })
-battimer:connect_signal("timeout", function () update_battery(batterywidget) end)
-battimer:start()
+   
+bat = batclosure(battery, mains)
+if bat then
+	batterywidget = wibox.widget.textbox()
+	batterywidget:set_align("right")
+	update_battery(batterywidget)
+
+	battimer = timer({ timeout = 10 })
+	battimer:connect_signal("timeout", function () update_battery(batterywidget) end)
+	battimer:start()
 end
