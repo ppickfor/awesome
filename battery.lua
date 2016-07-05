@@ -1,12 +1,12 @@
 -- https://awesome.naquadah.org/wiki/Closured_Battery_Widget
 local wibox = require("wibox")
 local awful = require("awful")
+local naughty = require("naughty")
+local beautiful = require("beautiful")
 local lfs = require("lfs")
    
 local io = io
 local math = math
-local naughty = naughty
-local beautiful = beautiful
 local tonumber = tonumber
 local tostring = tostring
 local print = print
