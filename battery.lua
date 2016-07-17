@@ -102,33 +102,35 @@ end
 
 function batclosure (adapter, mains)
     local nextlim = limits[1][1]
-    return function ()
-        local online, battery, dir, time = get_bat_state(adapter, mains)
-        local prefix = online
-        if dir == -1 then
-            dirsign = "↓"
-            prefix = prefix .. "Bat: "
-            prefix = prefix .. time
-            if battery <= nextlim then
-                naughty.notify({title = "⚡ Beware! ⚡",
-                            text = "Battery charge is low ( ⚡ "..battery.."%)!",
-                            timeout = 7,
-                            position = "bottom_right",
-                            fg = beautiful.fg_focus,
-                            bg = beautiful.bg_focus
-                            })
-                nextlim = getnextlim(battery)
-            end
-        elseif dir == 1 then
-            prefix = prefix .. time
-            dirsign = "↑"
-            nextlim = limits[1][1]
-        else
-            dirsign = ""
-        end
-        if dir ~= 0 then battery = battery.."%" end
-        return " "..prefix.." "..dirsign..battery..dirsign.." "
-    end
+    if adapter then
+	    return function ()
+		local online, battery, dir, time = get_bat_state(adapter, mains)
+		local prefix = online
+		if dir == -1 then
+		    dirsign = "↓"
+		    prefix = prefix .. "Bat: "
+		    prefix = prefix .. time
+		    if battery <= nextlim then
+			naughty.notify({title = "⚡ Beware! ⚡",
+				    text = "Battery charge is low ( ⚡ "..battery.."%)!",
+				    timeout = 7,
+				    position = "bottom_right",
+				    fg = beautiful.fg_focus,
+				    bg = beautiful.bg_focus
+				    })
+			nextlim = getnextlim(battery)
+		    end
+		elseif dir == 1 then
+		    prefix = prefix .. time
+		    dirsign = "↑"
+		    nextlim = limits[1][1]
+		else
+		    dirsign = ""
+		end
+		if dir ~= 0 then battery = battery.."%" end
+		return " "..prefix.." "..dirsign..battery..dirsign.." "
+	    end
+     end
 end
 
 function update_battery(widget)
@@ -153,13 +155,15 @@ for file in lfs.dir[[/sys/class/power_supply/]] do
 end
 
    
-bat = batclosure(battery, mains)
-if bat then
-	batterywidget = wibox.widget.textbox()
-	batterywidget:set_align("right")
-	update_battery(batterywidget)
+if battery then
+	bat = batclosure(battery, mains)
+	if bat then
+		batterywidget = wibox.widget.textbox()
+		batterywidget:set_align("right")
+		update_battery(batterywidget)
 
-	battimer = timer({ timeout = 10 })
-	battimer:connect_signal("timeout", function () update_battery(batterywidget) end)
-	battimer:start()
+		battimer = timer({ timeout = 10 })
+		battimer:connect_signal("timeout", function () update_battery(batterywidget) end)
+		battimer:start()
+	end
 end
