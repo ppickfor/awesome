@@ -19,7 +19,10 @@ local naughty = require("naughty")
         local datespec = os.date("*t")
         datespec = datespec.year * 12 + datespec.month - 1 + offset
         datespec = (datespec % 12 + 1) .. " " .. math.floor(datespec / 12)
-        local cal = awful.util.pread("cal -m " .. datespec)
+        awful.spawn.easy_async("cal -m " .. datespec, function(stdout, stderr, reason, exit_code)
+          cal = stdout
+        end)
+
         cal = string.gsub(cal, "^%s*(.-)%s*$", "%1")
         calendar = naughty.notify({
             text = string.format('<span font_desc="%s">%s</span>', "monospace", os.date("%a, %d %B %Y") .. "\n" .. cal),
