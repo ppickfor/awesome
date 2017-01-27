@@ -1,6 +1,7 @@
 -- https://awesome.naquadah.org/wiki/Active_RAM
    local wibox = require("wibox")
    local awful = require("awful")
+   local gears = require("gears")
    
    activeram_widget = wibox.widget.textbox()
    activeram_widget:set_align("right")
@@ -19,6 +20,6 @@
    
    update_activeram(activeram_widget)
    
-   memtimer = timer({ timeout = 10 })
-   memtimer:connect_signal("timeout", function () update_activeram(activeram_widget) end)
-   memtimer:start()
+   memtimer = gears.timer.start_new( 10, function () update_activeram(activeram_widget) end )
+   -- memtimer:connect_signal("timeout", function () update_activeram(activeram_widget) end)
+   -- memtimer:start()

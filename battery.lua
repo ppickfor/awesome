@@ -4,6 +4,7 @@ local awful = require("awful")
 local naughty = require("naughty")
 local beautiful = require("beautiful")
 local lfs = require("lfs")
+local gears = require("gears")
    
 local io = io
 local math = math
@@ -162,8 +163,6 @@ if battery then
 		batterywidget:set_align("right")
 		update_battery(batterywidget)
 
-		battimer = timer({ timeout = 10 })
-		battimer:connect_signal("timeout", function () update_battery(batterywidget) end)
-		battimer:start()
+		battimer = gears.timer.start_new( 10, function () update_battery(batterywidget) end )
 	end
 end
