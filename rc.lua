@@ -22,6 +22,7 @@ end
 
 local net_widgets = require("net_widgets")
 local lfs = require("lfs")
+require("mousemove")
 function dbg(vars)
     local text = ""
     for i=1, #vars do text = text .. vars[i] .. " | " end
@@ -262,15 +263,16 @@ root.buttons(awful.util.table.join(
 -- }}}
 
 -- {{{ Key bindings
+local toggletackpad = function ()
+    os.execute("/usr/bin/synclient TouchpadOff=$(synclient -l | grep -c 'TouchpadOff.*=.*0')" )
+    moveMouse(safeCoords.x, safeCoords.y)
+end
 globalkeys = awful.util.table.join(
-    awful.key({ modkey,           }, "s",      hotkeys_popup.show_help,
-              {description="show help", group="awesome"}),
-    awful.key({ modkey,           }, "Left",   awful.tag.viewprev,
-              {description = "view previous", group = "tag"}),
-    awful.key({ modkey,           }, "Right",  awful.tag.viewnext,
-              {description = "view next", group = "tag"}),
-    awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
-              {description = "go back", group = "tag"}),
+    awful.key({}, "#248", toggletackpad),
+    awful.key({}, "XF86HomePage", function () awful.util.spawn("firefox") end),
+    awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
+    awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
+    awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
 
     awful.key({ modkey,           }, "j",
         function ()
