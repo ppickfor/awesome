@@ -20,6 +20,4 @@
    
    update_activeram(activeram_widget)
    
-   activeramtimer = gears.timer.start_new( 10, function () update_activeram(activeram_widget) end )
-   -- memtimer:connect_signal("timeout", function () update_activeram(activeram_widget) end)
-   -- memtimer:start()
+   local activeramtimer = gears.timer.start_new( 10, function () update_activeram(activeram_widget) return true end )

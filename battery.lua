@@ -163,6 +163,6 @@ if battery then
 		batterywidget:set_align("right")
 		update_battery(batterywidget)
 
-		battimer = gears.timer.start_new( 10, function () update_battery(batterywidget) end )
+		local battimer = gears.timer.start_new( 10, function () update_battery(batterywidget) return true end )
 	end
 end
